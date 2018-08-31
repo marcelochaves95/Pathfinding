@@ -37,6 +37,9 @@ public GameObject [,] matriz ;
 				Debug.DrawLine(matriz[i,j].transform.position, matriz[i+1,j].transform.position, Color.magenta, 10000000);
 				Debug.DrawLine(matriz[i,j].transform.position, matriz[i,j+1].transform.position, Color.magenta, 10000000);
 				Debug.DrawLine(matriz[i,j].transform.position, matriz[i+1,j+1].transform.position, Color.magenta, 10000000);
+				Debug.DrawLine(matriz[i+1,j].transform.position, matriz[i+1,j+1].transform.position, Color.magenta, 10000000);
+				Debug.DrawLine(matriz[i,j+1].transform.position, matriz[i+1,j+1].transform.position, Color.magenta, 10000000);
+				Debug.DrawLine(matriz[i+1,j].transform.position, matriz[i,j+1].transform.position, Color.magenta, 10000000);
 			}			
 		}
 		

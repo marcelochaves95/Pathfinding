@@ -5,8 +5,10 @@ using UnityEngine;
 public class Graph : MonoBehaviour {
     public float granularidade = 1;//distância entre vértices
     public int nVertex = 10;//número de vértices no lado
+    [Range(0,90)] public float maxSlope = 30;//slope máximo do vértice para ele ser andável
+    [Range(0, 10)] public float maxBound = 5;
     public GameObject No;
-    public GameObject[] Nos;
+    public GameObject[] Nos;//vetor de nos
     public Material red, green;
 
     void Start()
@@ -16,9 +18,24 @@ public class Graph : MonoBehaviour {
         {
             for (int j = 0; j < nVertex; j++)
             {
-                GameObject newNo = Instantiate(No, this.transform.position + new Vector3(i * granularidade, 0, j * granularidade), Quaternion.identity);
-                newNo.name = "v_" + (i * nVertex + j);
-                Nos[i * nVertex + j] = newNo;
+                RaycastHit hit;
+                Vector3 posNodo = this.transform.position + new Vector3(i * granularidade, 0, j * granularidade);
+                if (Physics.Raycast(posNodo, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
+                {
+                    GameObject newNo = Instantiate(No, hit.point, Quaternion.identity);
+                    newNo.name = "v_" + (i * nVertex + j);
+
+                    if (hit.collider.gameObject.layer == 23)//se colidir com a layer No Walk
+                        newNo.GetComponent<No>().active = false;
+
+                    if(!isSlopeValid(hit))                  //desliga vértices muito inclinados
+                        newNo.GetComponent<No>().active = false;
+
+                    if(isNearWall(newNo,hit))               //desliga vértices próximos de paredes
+                        newNo.GetComponent<No>().active = false;
+
+                    Nos[i * nVertex + j] = newNo;
+                }
             }
         }
     }
@@ -54,5 +71,37 @@ public class Graph : MonoBehaviour {
                     }
                 }              
             }
+    }
+
+    /// <summary>
+    /// Checks if the slope is valid
+    /// </summary>
+    /// <returns></returns>
+    bool isSlopeValid (RaycastHit h)
+    {
+        float slope = Vector3.Angle(h.collider.gameObject.transform.TransformDirection(Vector3.up), h.normal);//calculates angle between hitPoint and hitNormal
+        if (slope > 90)
+            slope = 180 - slope;
+        if (slope > maxSlope)//returns false if slope is bigger than maxSlope
+            return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if vertex is near a blocking wall
+    /// </summary>
+    /// <param name="n"></param>
+    /// <param name="h"></param>
+    /// <returns></returns>
+    bool isNearWall(GameObject n, RaycastHit h)
+    {
+        if (Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.forward, out h, maxBound) ||
+            Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.back, out h, maxBound) ||
+            Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.right, out h, maxBound) ||
+            Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.left, out h, maxBound))
+            if (h.transform.gameObject.layer == 23)
+                return true;
+
+            return false;
     }
 }

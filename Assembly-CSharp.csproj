@@ -58,10 +58,6 @@
      <Compile Include="Assets\Gabriel\Novo\grafo.cs" />
      <Compile Include="Assets\Gabriel\Novo\nodo.cs" />
      <Compile Include="Assets\Gabriel\ScriptZoado.cs" />
-     <Compile Include="Assets\Isabelle\Isa_grafo.cs" />
-     <Compile Include="Assets\Isabelle\Isa_nodo.cs" />
-     <Compile Include="Assets\Isabelle\Isabelle.cs" />
-     <Compile Include="Assets\Marcelo\GraphMarcelo.cs" />
      <Compile Include="Assets\Terrain\Scripts\Math.cs" />
      <Compile Include="Assets\Victor\Scripts\CriacaoVictor.cs" />
      <Compile Include="Assets\Victor\Scripts\Graph.cs" />

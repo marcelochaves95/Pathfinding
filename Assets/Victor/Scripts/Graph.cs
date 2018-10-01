@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Graph : MonoBehaviour {
+    
     public float granularidade = 1;//distância entre vértices
     public int nVertex = 10;//número de vértices no lado
     [Range(0,90)] public float maxSlope = 30;//slope máximo do vértice para ele ser andável
@@ -26,13 +27,13 @@ public class Graph : MonoBehaviour {
                     newNo.name = "v_" + (i * nVertex + j);
 
                     if (hit.collider.gameObject.layer == 23)//se colidir com a layer No Walk
-                        newNo.GetComponent<No>().active = false;
+                        newNo.GetComponent<Node>().active = false;
 
                     if(!isSlopeValid(hit))                  //desliga vértices muito inclinados
-                        newNo.GetComponent<No>().active = false;
+                        newNo.GetComponent<Node>().active = false;
 
                     if(isNearWall(newNo,hit))               //desliga vértices próximos de paredes
-                        newNo.GetComponent<No>().active = false;
+                        newNo.GetComponent<Node>().active = false;
 
                     Nos[i * nVertex + j] = newNo;
                 }
@@ -49,24 +50,24 @@ public class Graph : MonoBehaviour {
         {
             for (int j = 0; j < nVertex; j++)
             {
-                if(!Nos[j*nVertex+i].GetComponent<No>().active) //se o nó estiver desativo
+                if(!Nos[j*nVertex+i].GetComponent<Node>().active) //se o nó estiver desativo
                     Nos[j * nVertex + i].GetComponent<MeshRenderer>().material = red;//fica vermelho
                 else
                     Nos[j * nVertex + i].GetComponent<MeshRenderer>().material = green;
 
                 if (i + 1 < nVertex)
                 {
-                    if (Nos[(j * nVertex) + (i + 1)].GetComponent<No>().active && Nos[(j * nVertex) + (i)].GetComponent<No>().active)
+                    if (Nos[(j * nVertex) + (i + 1)].GetComponent<Node>().active && Nos[(j * nVertex) + (i)].GetComponent<Node>().active)
                         Debug.DrawLine(Nos[(j * nVertex) + i].transform.position, Nos[(j * nVertex) + (i + 1)].transform.position, Color.green);
                 }
                 if (j + 1 < nVertex)
-                    if ( Nos[((j + 1) * nVertex) + (i)].GetComponent<No>().active && Nos[(j * nVertex) + (i)].GetComponent<No>().active)
+                    if ( Nos[((j + 1) * nVertex) + (i)].GetComponent<Node>().active && Nos[(j * nVertex) + (i)].GetComponent<Node>().active)
                         Debug.DrawLine(Nos[(j * nVertex) + i].transform.position, Nos[((j + 1) * nVertex) + (i)].transform.position, Color.green);
                 if (i + 1 < nVertex && j + 1 < nVertex)
                 {
-                    if (Nos[((j + 1) * nVertex) + (i+1)].GetComponent<No>().active && Nos[(j * nVertex) + (i)].GetComponent<No>().active)
+                    if (Nos[((j + 1) * nVertex) + (i+1)].GetComponent<Node>().active && Nos[(j * nVertex) + (i)].GetComponent<Node>().active)
                         Debug.DrawLine(Nos[(j * nVertex) + i].transform.position, Nos[((j + 1) * nVertex) + (i + 1)].transform.position, Color.green);
-                    if (Nos[((j + 1) * nVertex) + (i)].GetComponent<No>().active && Nos[(j * nVertex) + (i+1)].GetComponent<No>().active)
+                    if (Nos[((j + 1) * nVertex) + (i)].GetComponent<Node>().active && Nos[(j * nVertex) + (i+1)].GetComponent<Node>().active)
                         Debug.DrawLine(Nos[((j + 1) * nVertex) + i].transform.position, Nos[((j) * nVertex) + (i + 1)].transform.position, Color.green);
                     }
                 }              

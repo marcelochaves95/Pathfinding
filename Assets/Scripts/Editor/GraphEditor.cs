@@ -1,39 +1,35 @@
 ﻿using UnityEditor;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-using System.IO;
 
 [CanEditMultipleObjects]
-public class CreateGraphMenu : EditorWindow {
+public class GraphEditor : EditorWindow {
 
-    int size;
-    GameObject initialVertex;
-    float granularity;
+    private int size;
+    private GameObject initialVertex;
+    private float granularity;
 
     [Range(0, 90)] public float maxSlope = 30;//slope máximo do vértice para ele ser andável
     [Range(0, 10)] public float maxBound = 5;
 
-    GameObject nodesLocation;
-    GameObject edgesLocation;
+    private GameObject nodesLocation;
+    private GameObject edgesLocation;
 
-    GameObject node;
-    GameObject edge;
-    GameObject[] nodes = new GameObject[0];//vetor de nodes
-    List<Edge> edges = new List<Edge>();// vetor de arestas
+    private GameObject node;
+    private GameObject edge;
+    private GameObject[] nodes = new GameObject[0];//vetor de nodes
+    private List<Edge> edges = new List<Edge>();// vetor de arestas
 
-    GameObject[,] vertexMatrix;
-    Transform positions;
+    private GameObject[,] vertexMatrix;
+    private Transform positions;
 
 
     [MenuItem("Graph/Create Graph...")]
     private static void Init () {
-        EditorWindow.GetWindow<CreateGraphMenu>().Show();
+        EditorWindow.GetWindow<GraphEditor>().Show();
     }
 
-    private void OnGUI()
-    {
+    private void OnGUI () {
         GUILayout.Label("Granularity: ");
         granularity = EditorGUILayout.FloatField(granularity);
         GUILayout.Label("Size: ");
@@ -45,20 +41,17 @@ public class CreateGraphMenu : EditorWindow {
         GUILayout.Label("Edge Prefab: ");
         edge = (GameObject)EditorGUILayout.ObjectField(edge, typeof(GameObject), true);
         GUILayout.Label("");
-        if (GUILayout.Button("Generate Graph"))
-        {
+        if (GUILayout.Button("Generate Graph")) {
             DeleteGraph(size);
             CreateGraph(size);
             DrawEdges(nodes);
         }
 
-        if (GUILayout.Button("Delete Graph"))
-        {
+        if (GUILayout.Button("Delete Graph")) {
             DeleteGraph(size);
         }
 
-        if (GUILayout.Button("UpdateEdges"))
-        {
+        if (GUILayout.Button("UpdateEdges")) {
             UpdateEdges();
         }
     }
@@ -67,19 +60,14 @@ public class CreateGraphMenu : EditorWindow {
 
     //}
 
-    public void CreateGraph(int size)
-    {
+    public void CreateGraph (int size) {
         nodesLocation = new GameObject("Nodes");
-        //criar vértices
         nodes = new GameObject[size * size];
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 RaycastHit hit;
                 Vector3 posNode = initialVertex.transform.position + new Vector3(i * granularity, 0, j * granularity);
-                if (Physics.Raycast(posNode, Vector3.down, out hit, Mathf.Infinity))
-                {
+                if (Physics.Raycast(posNode, Vector3.down, out hit, Mathf.Infinity)) {
                     GameObject newNode = Instantiate(node, hit.point, Quaternion.identity);
                     newNode.name = "v_" + (i * size + j);
                     newNode.transform.SetParent(nodesLocation.transform);
@@ -100,21 +88,18 @@ public class CreateGraphMenu : EditorWindow {
 
     }
 
-    public void DeleteGraph(int size)
-    {
+    public void DeleteGraph (int size) {
         if (nodesLocation != null) DestroyImmediate(nodesLocation.gameObject);
         if(edgesLocation != null) DestroyImmediate(edgesLocation.gameObject);
         nodes = new GameObject[0];
         edges = new List<Edge>();
-
     }
 
     /// <summary>
     /// Checks if the slope is valid
     /// </summary>
     /// <returns></returns>
-    bool isSlopeValid(RaycastHit h)
-    {
+    private bool isSlopeValid (RaycastHit h) {
         float slope = Vector3.Angle(h.collider.gameObject.transform.TransformDirection(Vector3.up), h.normal);//calculates angle between hitPoint and hitNormal
         if (slope > 90)
             slope = 180 - slope;
@@ -129,54 +114,49 @@ public class CreateGraphMenu : EditorWindow {
     /// <param name="n"></param>
     /// <param name="h"></param>
     /// <returns></returns>
-    bool isNearWall(GameObject n, RaycastHit h)
-    {
+    bool isNearWall (GameObject n, RaycastHit h) {
         if (Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.forward, out h, maxBound) ||
             Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.back, out h, maxBound) ||
             Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.right, out h, maxBound) ||
             Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.left, out h, maxBound))
             if (h.transform.gameObject.layer == 23)
                 return true;
-
         return false;
     }
 
 
-    void DrawEdges(GameObject[] m)
-    {
+    void DrawEdges (GameObject[] m) {
         edgesLocation = new GameObject("Edges");
         if (m == null)//se o vetor não tiver sido preenchido ainda
             return;
 
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                if (i + 1 < size)
-                {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (i + 1 < size) {
+                    if(m[(j * size) + i] != null && m[(j * size) + (i + 1)] != null)
                         CreateEdge(m[(j * size) + i], m[(j * size) + (i + 1)]);
                 }
                 if (j + 1 < size)
+                        if(m[(j * size) + i] != null && m[((j + 1) * size) + (i)] != null)
                         CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i)]);
-                if (i + 1 < size && j + 1 < size)
-                {
+                if (i + 1 < size && j + 1 < size) {
+                    if(m[(j * size) + i] != null && m[((j + 1) * size) + (i + 1)] != null)
                         CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i + 1)]);
+                    if(m[((j + 1) * size) + i] != null && m[((j) * size) + (i + 1)] != null)
                         CreateEdge(m[((j + 1) * size) + i], m[((j) * size) + (i + 1)]);
                 }
             }
         }
     }
 
-    void CreateEdge(GameObject vertexA, GameObject vertexB)
-    {
+    private void CreateEdge (GameObject vertexA, GameObject vertexB) {
         GameObject e = Instantiate(edge, Vector3.zero, Quaternion.identity, edgesLocation.transform);
         Edge ed = e.GetComponent<Edge>();
         ed.SetEdge(vertexA.GetComponent<Node>(), vertexB.GetComponent<Node>());
         edges.Add(ed);
     }
 
-    void UpdateEdges()
-    {
+    private void UpdateEdges () {
         foreach (Edge e in edges) e.UpdateEdge();
     }
 

@@ -43,7 +43,7 @@ public class SaveLoadGraph : MonoBehaviour {
 
     public void LoadGraph (string name) {
         try {
-            int invCount = 0;
+            //int invCount = 0;
             int staCount = 0;
 
             XmlReader reader = XmlReader.Create(name + @".xml");
@@ -63,7 +63,7 @@ public class SaveLoadGraph : MonoBehaviour {
                             break;
                         case "Nome da variável que será 2.1":
                             Debug.Log("Reading XML (internal)");
-                            int auxStack = reader.ReadElementContentAsInt();
+                            //int auxStack = reader.ReadElementContentAsInt();
                             // Variável que vem da classe Graph[staCount] = auxStack;
                             staCount++;
                             Debug.Log("Read XML");

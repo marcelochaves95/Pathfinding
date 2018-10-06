@@ -1,21 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Edge : MonoBehaviour {
-    Node vertexA;
-    Node vertexB;
+
+    private Node vertexA;
+    private Node vertexB;
     public float value = 1;
 
-    public void SetEdge(Node a, Node b)
-    {
+    public void SetEdge (Node a, Node b) {
         vertexA = a;
         vertexB = b;
         UpdateEdge();
     }
 
-    public void UpdateEdge()
-    {
+    public void UpdateEdge () {
         Vector3 offset = vertexB.transform.position - vertexA.transform.position;
         Vector3 scale = new Vector3(0.05f, offset.magnitude, 0.05f);
         Vector3 position = vertexA.transform.position + (offset / 2.0f);

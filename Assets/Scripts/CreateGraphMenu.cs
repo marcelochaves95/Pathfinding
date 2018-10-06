@@ -15,14 +15,17 @@ public class CreateGraphMenu : EditorWindow {
     [Range(0, 90)] public float maxSlope = 30;//slope máximo do vértice para ele ser andável
     [Range(0, 10)] public float maxBound = 5;
 
+    GameObject nodesLocation;
+    GameObject edgesLocation;
+
     GameObject node;
-    GameObject[] nodes;//vetor de nodes
-    //Material red, green;
+    GameObject edge;
+    GameObject[] nodes = new GameObject[0];//vetor de nodes
+    List<Edge> edges = new List<Edge>();// vetor de arestas
 
     GameObject[,] vertexMatrix;
     Transform positions;
 
-    bool graphCreated = false;
 
     [MenuItem("Graph/Create Graph...")]
     private static void Init () {
@@ -39,61 +42,34 @@ public class CreateGraphMenu : EditorWindow {
         initialVertex = (GameObject)EditorGUILayout.ObjectField(initialVertex, typeof(GameObject), true);
         GUILayout.Label("Vertex Prefab: ");
         node = (GameObject)EditorGUILayout.ObjectField(node, typeof(GameObject), true);
+        GUILayout.Label("Edge Prefab: ");
+        edge = (GameObject)EditorGUILayout.ObjectField(edge, typeof(GameObject), true);
         GUILayout.Label("");
         if (GUILayout.Button("Generate Graph"))
         {
+            DeleteGraph(size);
             CreateGraph(size);
+            DrawEdges(nodes);
         }
 
         if (GUILayout.Button("Delete Graph"))
         {
             DeleteGraph(size);
         }
+
+        if (GUILayout.Button("UpdateEdges"))
+        {
+            UpdateEdges();
+        }
     }
 
-
-
-
     //private void OnInspectorUpdate()
-    //{
-    //    if (graphCreated)
-    //    {
-    //        //desenhar linhas
-    //        if (nodes == null)//se o vetor não tiver sido preenchido ainda
-    //            return;
 
-    //        for (int i = 0; i < size; i++)
-    //        {
-    //            for (int j = 0; j < size; j++)
-    //            {
-    //                if (!nodes[j * size + i].GetComponent<Node>().active) //se o nó estiver desativo
-    //                    nodes[j * size + i].GetComponent<MeshRenderer>().material.color = Color.red;//fica vermelho
-    //                else
-    //                    nodes[j * size + i].GetComponent<MeshRenderer>().material.color = Color.green;
-
-    //                if (i + 1 < size)
-    //                {
-    //                    if (nodes[(j * size) + (i + 1)].GetComponent<Node>().active && nodes[(j * size) + (i)].GetComponent<Node>().active)
-    //                        Gizmos.DrawLine(nodes[(j * size) + i].transform.position, nodes[(j * size) + (i + 1)].transform.position);
-
-    //                }
-    //                if (j + 1 < size)
-    //                    if (nodes[((j + 1) * size) + (i)].GetComponent<Node>().active && nodes[(j * size) + (i)].GetComponent<Node>().active)
-    //                        Gizmos.DrawLine(nodes[(j * size) + i].transform.position, nodes[((j + 1) * size) + (i)].transform.position);
-    //                if (i + 1 < size && j + 1 < size)
-    //                {
-    //                    if (nodes[((j + 1) * size) + (i + 1)].GetComponent<Node>().active && nodes[(j * size) + (i)].GetComponent<Node>().active)
-    //                        Gizmos.DrawLine(nodes[(j * size) + i].transform.position, nodes[((j + 1) * size) + (i + 1)].transform.position);
-    //                    if (nodes[((j + 1) * size) + (i)].GetComponent<Node>().active && nodes[(j * size) + (i + 1)].GetComponent<Node>().active)
-    //                        Gizmos.DrawLine(nodes[((j + 1) * size) + i].transform.position, nodes[((j) * size) + (i + 1)].transform.position);
-    //                }
-    //            }
-    //        }
-    //    }
     //}
 
     public void CreateGraph(int size)
     {
+        nodesLocation = new GameObject("Nodes");
         //criar vértices
         nodes = new GameObject[size * size];
         for (int i = 0; i < size; i++)
@@ -106,7 +82,7 @@ public class CreateGraphMenu : EditorWindow {
                 {
                     GameObject newNode = Instantiate(node, hit.point, Quaternion.identity);
                     newNode.name = "v_" + (i * size + j);
-                    newNode.transform.SetParent(initialVertex.transform);
+                    newNode.transform.SetParent(nodesLocation.transform);
 
                     if (hit.collider.gameObject.layer == 23)//se colidir com a layer No Walk
                         newNode.GetComponent<Node>().active = false;
@@ -122,19 +98,15 @@ public class CreateGraphMenu : EditorWindow {
             }
         }
 
-        graphCreated = true;
     }
 
     public void DeleteGraph(int size)
     {
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                if (nodes[i * size + j] != null) DestroyImmediate(nodes[i * size + j].gameObject);
-            }
-        }
-        graphCreated = false;
+        if (nodesLocation != null) DestroyImmediate(nodesLocation.gameObject);
+        if(edgesLocation != null) DestroyImmediate(edgesLocation.gameObject);
+        nodes = new GameObject[0];
+        edges = new List<Edge>();
+
     }
 
     /// <summary>
@@ -167,6 +139,45 @@ public class CreateGraphMenu : EditorWindow {
                 return true;
 
         return false;
+    }
+
+
+    void DrawEdges(GameObject[] m)
+    {
+        edgesLocation = new GameObject("Edges");
+        if (m == null)//se o vetor não tiver sido preenchido ainda
+            return;
+
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                if (i + 1 < size)
+                {
+                        CreateEdge(m[(j * size) + i], m[(j * size) + (i + 1)]);
+                }
+                if (j + 1 < size)
+                        CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i)]);
+                if (i + 1 < size && j + 1 < size)
+                {
+                        CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i + 1)]);
+                        CreateEdge(m[((j + 1) * size) + i], m[((j) * size) + (i + 1)]);
+                }
+            }
+        }
+    }
+
+    void CreateEdge(GameObject vertexA, GameObject vertexB)
+    {
+        GameObject e = Instantiate(edge, Vector3.zero, Quaternion.identity, edgesLocation.transform);
+        Edge ed = e.GetComponent<Edge>();
+        ed.SetEdge(vertexA.GetComponent<Node>(), vertexB.GetComponent<Node>());
+        edges.Add(ed);
+    }
+
+    void UpdateEdges()
+    {
+        foreach (Edge e in edges) e.UpdateEdge();
     }
 
 }

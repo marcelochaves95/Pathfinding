@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4566765694330300}
   - component: {fileID: 33948933331193758}
   - component: {fileID: 23495785166719762}
-  - component: {fileID: 135956309547026914}
   - component: {fileID: 114290163135947810}
   m_Layer: 0
   m_Name: Vertex
@@ -97,15 +96,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
---- !u!135 &135956309547026914
-SphereCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1154566097055754}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}

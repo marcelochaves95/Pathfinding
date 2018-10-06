@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class Node : MonoBehaviour {
 
     public bool active = true;
+    public List<Node> connectedList = new List<Node>();
 
-    private void OnMouseClick () {
-        active = !active;
+    public void AddNode(Node n)
+    {
+        connectedList.Add(n);
     }
 }

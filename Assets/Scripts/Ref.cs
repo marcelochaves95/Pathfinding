@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CriacaoVictor : MonoBehaviour {
+public class Ref : MonoBehaviour {
     
     [SerializeField] int size;
     [SerializeField] GameObject initialVertex;

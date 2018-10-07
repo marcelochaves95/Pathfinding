@@ -46,7 +46,8 @@ public class Edge : MonoBehaviour
         if (!vertexA.active || !vertexB.active)
         {
             this.transform.localScale = Vector3.zero;
-        } else
+        }
+        else
         {
             this.transform.localScale = scale;
         }

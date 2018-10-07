@@ -216,9 +216,9 @@ public class GraphEditor : EditorWindow
                         if(m[(j * size) + i] != null && m[((j + 1) * size) + (i)] != null)
                         CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i)], 1);
                 if (i + 1 < size && j + 1 < size) {
-                    if(m[(j * size) + i] != null && m[((j + 1) * size) + (i + 1)] != null)
+                    if (m[(j * size) + i] != null && m[((j + 1) * size) + (i + 1)] != null)
                         CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i + 1)], 1);
-                    if(m[((j + 1) * size) + i] != null && m[((j) * size) + (i + 1)] != null)
+                    if (m[((j + 1) * size) + i] != null && m[((j) * size) + (i + 1)] != null)
                         CreateEdge(m[((j + 1) * size) + i], m[((j) * size) + (i + 1)], 1);
                 }
             }

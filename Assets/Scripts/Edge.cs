@@ -37,8 +37,8 @@ public class Edge : MonoBehaviour {
         
         this.transform.localScale = scale;
 
-        vertexA.UpdateStat();
-        vertexB.UpdateStat();
+        vertexA.UpdateStats();
+        vertexB.UpdateStats();
 
         if (!vertexA.active || !vertexB.active) {
             this.transform.localScale = Vector3.zero;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public struct Neighbor {
     public Node node;
     public float weight;
+    //public List<Edge> edge;
 }
 
 public class Node : MonoBehaviour {
@@ -36,7 +37,7 @@ public class Node : MonoBehaviour {
         }
     }
 
-    public void UpdateStat () {
+    public void UpdateStats () {
         position = this.transform.position;
         this.gameObject.GetComponent<Renderer>().material = active ? green : red;
     }
@@ -53,7 +54,11 @@ public class Node : MonoBehaviour {
         }
     }
 
-    public void Graph () {
-        this.graph = new Graph(active, position, connectedList);
+    private void Graph () {
+        this.graph = new Graph(this.active, this.position, this.connectedList) {
+            status = this.active,
+            position = this.position,
+            connectedNodes = this.connectedList
+        };
     }
 }

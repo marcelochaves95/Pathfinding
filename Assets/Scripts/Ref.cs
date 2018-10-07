@@ -5,7 +5,7 @@ using UnityEngine;
 public class Ref : MonoBehaviour {
     
     [SerializeField] private int size;
-    
+
     [SerializeField] private float granularity;
 
     [SerializeField] private GameObject initialVertex;
@@ -29,7 +29,7 @@ public class Ref : MonoBehaviour {
             }
         }
     }
-
+    
     private void DrawEdges (GameObject[,] m) {
         for (int i = 0; i < m.Length-1; i++) {
             for (int j = 0; j < m.Length-1; j++) {

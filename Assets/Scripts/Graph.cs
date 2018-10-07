@@ -14,9 +14,16 @@ public class Graph : MonoBehaviour {
     }
 
 	public Data data;
-    
-    public Graph (bool status, Vector3 position, List<Neighbor> connectedNodes) {
 
+    public bool status;
+    public Vector3 position;
+    public Neighbor node;
+    public List<Neighbor> connectedNodes;
+
+    public Graph (bool status, Vector3 position, List<Neighbor> connectedNodes) {
+        this.status = status;
+        this.position = position;
+        this.connectedNodes = connectedNodes;
     }
 
     public void SaveGraph () {

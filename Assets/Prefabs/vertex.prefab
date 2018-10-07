@@ -96,3 +96,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
+  connectedNodes: 0
+  green: {fileID: 2100000, guid: acde70a86e8b30d458c7412d6e76a6cd, type: 2}
+  red: {fileID: 2100000, guid: ff3d954642ee36547965045b014f178d, type: 2}

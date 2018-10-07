@@ -1,12 +1,59 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+public struct Neighbor {
+    public Node node;
+    public float weight;
+}
+
 public class Node : MonoBehaviour {
 
-    public bool active = true;
-    public List<Node> connectedList = new List<Node>();
+    public int index;
 
-    public void AddNode (Node n) {
-        connectedList.Add(n);
+    public bool active = true;
+    
+    public Vector3 position;
+
+    public Material green;
+    public Material red;
+
+    public List<Neighbor> connectedList = new List<Neighbor>();
+    
+    private Graph graph;
+
+    public void AddNode (Node n, float d) {
+        bool canAdd = true;
+        foreach (Neighbor ne in connectedList) {
+            if (ne.node == n) {
+                canAdd = false;
+            }
+        }
+        if (canAdd) { 
+            Neighbor aux;
+            aux.node = n;
+            aux.weight = d;
+            connectedList.Add(aux);
+        }
+    }
+
+    public void UpdateStat () {
+        position = this.transform.position;
+        this.gameObject.GetComponent<Renderer>().material = active ? green : red;
+    }
+
+    public void UpdateWeight (Node n, float value) {
+        Neighbor aux;
+        for (int i = 0; i < connectedList.Count; i++) {
+            if (connectedList[i].node == n) {
+                aux = connectedList[i];
+                aux.weight = value;
+                connectedList[i] = aux;
+                return;
+            }
+        }
+    }
+
+    public void Graph () {
+        this.graph = new Graph(active, position, connectedList);
     }
 }

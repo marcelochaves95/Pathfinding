@@ -23,6 +23,7 @@ public class GraphEditor : EditorWindow {
     private GameObject[,] vertexMatrix;
     private Transform positions;
 
+    private Graph graph;
 
     [MenuItem("Graph/Create Graph...")]
     private static void Init () {
@@ -51,14 +52,21 @@ public class GraphEditor : EditorWindow {
             DeleteGraph(size);
         }
 
-        if (GUILayout.Button("UpdateEdges")) {
-            UpdateEdges();
+        if (GUILayout.Button("SaveGraph")) {
+            graph.SaveGraph();
+
+            // SaveGraph(nodes);
+            /*
+                Save deve pegar: nodes.length
+                Para cada node: Posição x,y,z   ativo/inativo      lista de nodos conectados { Index nodo, Peso da aresta }
+         
+            */
         }
     }
 
-    //private void OnInspectorUpdate()
-
-    //}
+    private void OnInspectorUpdate() {
+        if(edges.Count > 0) UpdateEdges();
+    }
 
     public void CreateGraph (int size) {
         nodesLocation = new GameObject("Nodes");
@@ -70,17 +78,23 @@ public class GraphEditor : EditorWindow {
                 if (Physics.Raycast(posNode, Vector3.down, out hit, Mathf.Infinity)) {
                     GameObject newNode = Instantiate(node, hit.point, Quaternion.identity);
                     newNode.name = "v_" + (i * size + j);
+                    newNode.GetComponent<Node>().index = i * size + j;
                     newNode.transform.SetParent(nodesLocation.transform);
-
-                    if (hit.collider.gameObject.layer == 23)//se colidir com a layer No Walk
+                    
+                    // Se colidir com a layer No Walk
+                    if (hit.collider.gameObject.layer == 23) {
                         newNode.GetComponent<Node>().active = false;
+                    }
 
-                    if (!isSlopeValid(hit))                  //desliga vértices muito inclinados
+                    // Desliga vértices muito inclinados
+                    if (!isSlopeValid(hit)) {
                         newNode.GetComponent<Node>().active = false;
-
-                    if (isNearWall(newNode, hit))               //desliga vértices próximos de paredes
+                    }
+                    
+                    // Desliga vértices próximos de paredes    
+                    if (isNearWall(newNode, hit)) {
                         newNode.GetComponent<Node>().active = false;
-
+                    }
                     nodes[i * size + j] = newNode;
                 }
             }
@@ -89,8 +103,12 @@ public class GraphEditor : EditorWindow {
     }
 
     public void DeleteGraph (int size) {
-        if (nodesLocation != null) DestroyImmediate(nodesLocation.gameObject);
-        if(edgesLocation != null) DestroyImmediate(edgesLocation.gameObject);
+        if (nodesLocation != null) {
+            DestroyImmediate(nodesLocation.gameObject);
+        }
+        if (edgesLocation != null) {
+            DestroyImmediate(edgesLocation.gameObject);
+        }
         nodes = new GameObject[0];
         edges = new List<Edge>();
     }
@@ -100,11 +118,15 @@ public class GraphEditor : EditorWindow {
     /// </summary>
     /// <returns></returns>
     private bool isSlopeValid (RaycastHit h) {
-        float slope = Vector3.Angle(h.collider.gameObject.transform.TransformDirection(Vector3.up), h.normal);//calculates angle between hitPoint and hitNormal
-        if (slope > 90)
+
+        // Calculates angle between hitPoint and hitNormal
+        float slope = Vector3.Angle(h.collider.gameObject.transform.TransformDirection(Vector3.up), h.normal);
+        if (slope > 90) {
             slope = 180 - slope;
-        if (slope > maxSlope)//returns false if slope is bigger than maxSlope
+        }
+        if (slope > maxSlope) {
             return false;
+        }
         return true;
     }
 
@@ -114,22 +136,23 @@ public class GraphEditor : EditorWindow {
     /// <param name="n"></param>
     /// <param name="h"></param>
     /// <returns></returns>
-    bool isNearWall (GameObject n, RaycastHit h) {
+    private bool isNearWall (GameObject n, RaycastHit h) {
         if (Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.forward, out h, maxBound) ||
             Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.back, out h, maxBound) ||
             Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.right, out h, maxBound) ||
             Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.left, out h, maxBound))
-            if (h.transform.gameObject.layer == 23)
+            if (h.transform.gameObject.layer == 23) {
                 return true;
+            }
         return false;
     }
 
 
-    void DrawEdges (GameObject[] m) {
+    private void DrawEdges (GameObject[] m) {
         edgesLocation = new GameObject("Edges");
-        if (m == null)//se o vetor não tiver sido preenchido ainda
+        if (m == null) {
             return;
-
+        }
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (i + 1 < size) {
@@ -159,5 +182,4 @@ public class GraphEditor : EditorWindow {
     private void UpdateEdges () {
         foreach (Edge e in edges) e.UpdateEdge();
     }
-
 }

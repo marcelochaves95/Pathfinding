@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
-public class Edge : MonoBehaviour {
+public class Edge : MonoBehaviour
+{
 
     private float _value;
     public float value = 1;
@@ -15,7 +16,8 @@ public class Edge : MonoBehaviour {
     private Node vertexA;
     private Node vertexB;
 
-    public void SetEdge (Node a, Node b) {
+    public void SetEdge(Node a, Node b)
+    {
         _value = value;
         vertexA = a;
         vertexB = b;
@@ -26,7 +28,8 @@ public class Edge : MonoBehaviour {
         UpdateEdge();
     }
 
-    public void UpdateEdge () {
+    public void UpdateEdge()
+    {
         offset = vertexB.transform.position - vertexA.transform.position;
         scale = new Vector3(0.05f, offset.magnitude, 0.05f);
         position = vertexA.transform.position + (offset / 2.0f);
@@ -40,12 +43,15 @@ public class Edge : MonoBehaviour {
         vertexA.UpdateStats();
         vertexB.UpdateStats();
 
-        if (!vertexA.active || !vertexB.active) {
+        if (!vertexA.active || !vertexB.active)
+        {
             this.transform.localScale = Vector3.zero;
-        } else {
+        } else
+        {
             this.transform.localScale = scale;
         }
-        if (_value != value) {
+        if (_value != value)
+        {
             vertexA.UpdateWeight(vertexB, value);
             vertexB.UpdateWeight(vertexA, value);
             _value = value;

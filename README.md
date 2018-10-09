@@ -1,6 +1,6 @@
 ## Artificial Intelligence
 
-Artificial intelligence in Unity using graphs and the pathfinding RTA* algorithm.
+Artificial intelligence in Unity using graphs and the pathfinding LRTA* algorithm.
 
 ## License
 

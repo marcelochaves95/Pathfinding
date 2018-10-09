@@ -21,24 +21,24 @@ public class GraphEditor : EditorWindow
 {
 
     private int size = 15;
-    private GameObject initialVertex;
+
+    [Range(0, 90)] public float maxSlope = 30;
+    [Range(0, 10)] public float maxBound = 5;
     private float granularity = 10;
 
-    [Range(0, 90)] public float maxSlope = 30; // Slope máximo do vértice para ele ser andável
-    [Range(0, 10)] public float maxBound = 5;
-
+    private GameObject initialVertex;
     private GameObject nodesLocation;
     private GameObject edgesLocation;
-
     private GameObject node;
     private GameObject edge;
-    public static Node[] nodes = new Node[0]; // Vetor de nodes, ele será usado no caminhamento
-    private List<Edge> edges = new List<Edge>(); // Vetor de arestas
-
+    private GameObject graph;
     private GameObject[,] vertexMatrix;
+
     private Transform positions;
 
-    private GameObject graph;
+    public static Node[] nodes = new Node[0];
+
+    private List<Edge> edges = new List<Edge>();
 
     #region Editor
     [MenuItem("Graph/Create Graph...")]
@@ -53,13 +53,15 @@ public class GraphEditor : EditorWindow
         granularity = EditorGUILayout.FloatField(granularity);
         GUILayout.Label("Size: ");
         size = EditorGUILayout.IntField(size);
-        GUILayout.Label("Initial Vertex: ");
+        GUILayout.Label("Initial Vertex (Seed): ");
         initialVertex = (GameObject)EditorGUILayout.ObjectField(initialVertex, typeof(GameObject), true);
         GUILayout.Label("Vertex Prefab: ");
         node = (GameObject)EditorGUILayout.ObjectField(node, typeof(GameObject), true);
         GUILayout.Label("Edge Prefab: ");
         edge = (GameObject)EditorGUILayout.ObjectField(edge, typeof(GameObject), true);
-        GUILayout.Label("");
+        
+        EditorGUILayout.Separator();
+        EditorGUI.BeginDisabledGroup(!initialVertex || !node || !edge);
         if (GUILayout.Button("Generate Graph"))
         {
             DeleteGraph();
@@ -67,6 +69,7 @@ public class GraphEditor : EditorWindow
             CreateGraph(size);
             DrawEdges(nodes);
         }
+        EditorGUI.EndDisabledGroup();        
 
         if (GUILayout.Button("Delete Graph"))
         {
@@ -76,23 +79,11 @@ public class GraphEditor : EditorWindow
         if (GUILayout.Button("SaveGraph"))
         {
             SaveXML();
-            // SaveGraph(nodes);
-            /*
-                Save deve pegar: nodes.length
-                Para cada node: Posição x,y,z   ativo/inativo      lista de nodos conectados { Index nodo, Peso da aresta }
-         
-            */
         }
 
         if (GUILayout.Button("LoadGraph"))
         {
             LoadXML();
-            // SaveGraph(nodes);
-            /*
-                Save deve pegar: nodes.length
-                Para cada node: Posição x,y,z   ativo/inativo      lista de nodos conectados { Index nodo, Peso da aresta }
-         
-            */
         }
     }
 
@@ -125,19 +116,19 @@ public class GraphEditor : EditorWindow
 
                     newNode.transform.SetParent(nodesLocation.transform);
                     
-                    // Se colidir com a layer No Walk
+                    // If it collides with the layer No Walk
                     if (hit.collider.gameObject.layer == 23)
                     {
                         newNode.GetComponent<Node>().active = false;
                     }
 
-                    // Desliga vértices muito inclinados
+                    // Turn off very steep vertices
                     if (!IsSlopeValid(hit))
                     {
                         newNode.GetComponent<Node>().active = false;
                     }
                     
-                    // Desliga vértices próximos de paredes
+                    // Turn off near vertices of walls
                     if (IsNearWall(newNode, hit))
                     {
                         newNode.GetComponent<Node>().active = false;
@@ -148,7 +139,7 @@ public class GraphEditor : EditorWindow
                 }
             }
         }
-        GraphSingleton.Instance.SetNodes(nodes);
+        Graph.singleton.SetNodes(nodes);
     }
 
     public void DeleteGraph()
@@ -218,7 +209,7 @@ public class GraphEditor : EditorWindow
                         CreateEdge(m[(j * size) + i], m[(j * size) + (i + 1)]);
                 }
                 if (j + 1 < size)
-                        if(m[(j * size) + i] != null && m[((j + 1) * size) + (i)] != null)
+                        if (m[(j * size) + i] != null && m[((j + 1) * size) + (i)] != null)
                         CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i)]);
                 if (i + 1 < size && j + 1 < size) {
                     if (m[(j * size) + i] != null && m[((j + 1) * size) + (i + 1)] != null)
@@ -279,7 +270,9 @@ public class GraphEditor : EditorWindow
         Debug.Log("Saved");
     }
 
-    /** <summary> Metodo para carregar um objeto de um arquivo XML </summary>*/
+    /// <summary>
+    /// Method for loading an object from an XML file
+    /// </summary>
     public void LoadXML()
     {
         Nodes[] loadedData;
@@ -289,7 +282,6 @@ public class GraphEditor : EditorWindow
         file.Close();
 
         nodes = new Node[loadedData.Length];
-
 
         graph = new GameObject("Graph");
         nodesLocation = new GameObject("Nodes");
@@ -318,7 +310,7 @@ public class GraphEditor : EditorWindow
 
         DrawEdges(nodes);
 
-        GraphSingleton.Instance.SetNodes(nodes);
+        Graph.singleton.SetNodes(nodes);
 
         Debug.Log("Loaded");
     }

@@ -2,7 +2,6 @@
 
 public class Edge : MonoBehaviour
 {
-
     private float _value;
     public float value = 1;
 
@@ -35,7 +34,7 @@ public class Edge : MonoBehaviour
 
         this.transform.up = offset;
         this.transform.position = position;
-        this.gameObject.name = vertexA.name + " - " + vertexB.name + " Valor: " + value.ToString();
+        this.gameObject.name = vertexA.name + " - " + vertexB.name + " Value: " + value.ToString();
         
         this.transform.localScale = scale;
 

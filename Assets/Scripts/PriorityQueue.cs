@@ -1,5 +1,4 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
@@ -20,9 +19,9 @@ public class PriorityQueue<T> : IEnumerable
     /// <returns>Index of new element</returns>
     public int Enqueue(T item, float priority)
     {
-        for (int i = 0; i < priorities.Count; i++) //go through all elements...
+        for (int i = 0; i < priorities.Count; i++)
         {
-            if (priorities[i] > priority) //...as long as they have a lower priority.    low priority = low index
+            if (priorities[i] > priority)
             {
                 items.Insert(i, item);
                 priorities.Insert(i, (int)priority);

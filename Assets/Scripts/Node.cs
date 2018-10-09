@@ -11,8 +11,22 @@ public class Node : MonoBehaviour
 {
     public int index;
 
-    public bool active = true;
-    
+    [SerializeField]
+    private bool _active = true;
+     public bool active
+    {
+        get
+        {
+            return this._active;
+        }
+        set
+        {
+            this._active = value;
+            UpdateStats();
+        }
+    }
+
+
     public Vector3 position;
 
     public List<Neighbor> connectedList = new List<Neighbor>();
@@ -20,23 +34,24 @@ public class Node : MonoBehaviour
     public Material green;
     public Material red;
 
-    public void AddNode(Node n, float d)
+    public float AddNode(Node n, float d)
     {
-        bool canAdd = true;
         foreach (Neighbor ne in connectedList)
         {
             if (ne.node == n)
             {
-                canAdd = false;
+                return ne.weight;
             }
         }
-        if (canAdd)
-        {
-            Neighbor aux;
-            aux.node = n;
-            aux.weight = d;
-            connectedList.Add(aux);
-        }
+        Neighbor aux;
+        aux.node = n;
+        aux.weight = d;
+        connectedList.Add(aux);
+        return d;
+    }
+
+    void FixedUpdate(){
+        UpdateStats();
     }
 
     public void UpdateStats()

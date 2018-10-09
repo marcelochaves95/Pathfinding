@@ -19,9 +19,10 @@ public class Nodes
 [CanEditMultipleObjects]
 public class GraphEditor : EditorWindow
 {
-    private int size;
+
+    private int size = 15;
     private GameObject initialVertex;
-    private float granularity;
+    private float granularity = 10;
 
     [Range(0, 90)] public float maxSlope = 30; // Slope máximo do vértice para ele ser andável
     [Range(0, 10)] public float maxBound = 5;
@@ -31,7 +32,7 @@ public class GraphEditor : EditorWindow
 
     private GameObject node;
     private GameObject edge;
-    private GameObject[] nodes = new GameObject[0]; // Vetor de nodes
+    public static Node[] nodes = new Node[0]; // Vetor de nodes, ele será usado no caminhamento
     private List<Edge> edges = new List<Edge>(); // Vetor de arestas
 
     private GameObject[,] vertexMatrix;
@@ -108,7 +109,7 @@ public class GraphEditor : EditorWindow
     {
         nodesLocation = new GameObject("Nodes");
         nodesLocation.transform.SetParent(graph.transform);
-        nodes = new GameObject[size * size];
+        nodes = new Node[size * size];
         for (int i = 0; i < size; i++)
         {
             for (int j = 0; j < size; j++)
@@ -120,6 +121,8 @@ public class GraphEditor : EditorWindow
                     GameObject newNode = Instantiate(node, hit.point, Quaternion.identity);
                     newNode.name = "v_" + (i * size + j);
                     newNode.GetComponent<Node>().index = i * size + j;
+                    newNode.GetComponent<Node>().position = hit.point;
+
                     newNode.transform.SetParent(nodesLocation.transform);
                     
                     // Se colidir com a layer No Walk
@@ -139,11 +142,13 @@ public class GraphEditor : EditorWindow
                     {
                         newNode.GetComponent<Node>().active = false;
                     }
-                    nodes[i * size + j] = newNode;
+
+                    nodes[i * size + j] = newNode.GetComponent<Node>();
+                    
                 }
             }
         }
-
+        GraphSingleton.Instance.SetNodes(nodes);
     }
 
     public void DeleteGraph()
@@ -152,7 +157,7 @@ public class GraphEditor : EditorWindow
         {
             DestroyImmediate(graph.gameObject);
         }
-        nodes = new GameObject[0];
+        nodes = new Node[0];
         edges = new List<Edge>();
     }
 
@@ -195,7 +200,7 @@ public class GraphEditor : EditorWindow
     }
 
 
-    private void DrawEdges(GameObject[] m)
+    private void DrawEdges(Node[] m)
     {
         edgesLocation = new GameObject("Edges");
         edgesLocation.transform.SetParent(graph.transform);
@@ -210,26 +215,26 @@ public class GraphEditor : EditorWindow
                 if (i + 1 < size)
                 {
                     if (m[(j * size) + i] != null && m[(j * size) + (i + 1)] != null)
-                        CreateEdge(m[(j * size) + i], m[(j * size) + (i + 1)], 1);
+                        CreateEdge(m[(j * size) + i], m[(j * size) + (i + 1)]);
                 }
                 if (j + 1 < size)
                         if(m[(j * size) + i] != null && m[((j + 1) * size) + (i)] != null)
-                        CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i)], 1);
+                        CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i)]);
                 if (i + 1 < size && j + 1 < size) {
                     if (m[(j * size) + i] != null && m[((j + 1) * size) + (i + 1)] != null)
-                        CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i + 1)], 1);
+                        CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i + 1)]);
                     if (m[((j + 1) * size) + i] != null && m[((j) * size) + (i + 1)] != null)
-                        CreateEdge(m[((j + 1) * size) + i], m[((j) * size) + (i + 1)], 1);
+                        CreateEdge(m[((j + 1) * size) + i], m[((j) * size) + (i + 1)]);
                 }
             }
         }
     }
 
-    private void CreateEdge(GameObject vertexA, GameObject vertexB, float weight)
+    private void CreateEdge(Node vertexA, Node vertexB)
     {
         GameObject e = Instantiate(edge, Vector3.zero, Quaternion.identity, edgesLocation.transform);
         Edge ed = e.GetComponent<Edge>();
-        ed.SetEdge(vertexA.GetComponent<Node>(), vertexB.GetComponent<Node>());
+        ed.SetEdge(vertexA, vertexB);
         edges.Add(ed);
     }
 
@@ -248,16 +253,16 @@ public class GraphEditor : EditorWindow
         for (int i = 0; i < savedData.Length; i++)
         {
             Nodes aux = new Nodes();
-            aux.index = nodes[i].GetComponent<Node>().index;
-            aux.status = nodes[i].GetComponent<Node>().active;
+            aux.index = nodes[i].index;
+            aux.status = nodes[i].active;
             aux.position = nodes[i].transform.position;
 
             aux.connected = new Connected[nodes[i].GetComponent<Node>().connectedList.Count];
             for (int k = 0; k < aux.connected.Length; k++)
             {
                 Connected auxCon = new Connected();
-                auxCon.index = nodes[i].GetComponent<Node>().connectedList[k].node.index;
-                auxCon.value = nodes[i].GetComponent<Node>().connectedList[k].weight;
+                auxCon.index = nodes[i].connectedList[k].node.index;
+                auxCon.value = nodes[i].connectedList[k].weight;
                 aux.connected[k] = auxCon;
             }
 
@@ -283,7 +288,7 @@ public class GraphEditor : EditorWindow
         loadedData = (Nodes[])reader.Deserialize(file);
         file.Close();
 
-        nodes = new GameObject[loadedData.Length];
+        nodes = new Node[loadedData.Length];
 
 
         graph = new GameObject("Graph");
@@ -298,7 +303,7 @@ public class GraphEditor : EditorWindow
             newNode.GetComponent<Node>().active = loadedData[i].status;
             newNode.name = "v_" + i.ToString();
             newNode.transform.SetParent(nodesLocation.transform);
-            nodes[i] = newNode;
+            nodes[i] = newNode.GetComponent<Node>();
         }
         for (int i = 0; i < nodes.Length; i++)
         {
@@ -311,8 +316,11 @@ public class GraphEditor : EditorWindow
             }
         }
 
+        DrawEdges(nodes);
+
+        GraphSingleton.Instance.SetNodes(nodes);
+
         Debug.Log("Loaded");
-        Debug.Log(loadedData[24].index + " " + loadedData[24].status + " " + loadedData[24].position);
     }
     #endregion
 }

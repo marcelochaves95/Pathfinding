@@ -18,12 +18,11 @@ public class Edge : MonoBehaviour
 
     public void SetEdge(Node a, Node b)
     {
-        _value = value;
         vertexA = a;
         vertexB = b;
         vertexAActive = a.active;
         vertexBActive = b.active;
-        vertexA.AddNode(b, value);
+        _value = value = vertexA.AddNode(b, value);
         vertexB.AddNode(a, value);
         UpdateEdge();
     }

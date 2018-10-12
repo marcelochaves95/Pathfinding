@@ -137,7 +137,10 @@
         {
             if (edges.Count > 0)
             {
-                if (edges[0] != null) UpdateEdges();
+                if (edges[0] != null)
+                {
+                    UpdateEdges();
+                }
             }
         }
         #endregion
@@ -194,7 +197,6 @@
         /// <returns></returns>
         private bool IsSlopeValid(RaycastHit h)
         {
-            // Calculates angle between hitPoint and hitNormal
             float slope = Vector3.Angle(h.collider.gameObject.transform.TransformDirection(Vector3.up), h.normal);
             if (slope > 90)
             {

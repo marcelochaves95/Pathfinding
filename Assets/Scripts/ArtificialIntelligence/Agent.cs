@@ -31,8 +31,7 @@
 			Node nDestiny = GraphManager.singleton.GetNode(destiny);
 			EnqueueOnPath(nCurrent);
 			Node aux = nCurrent;
-			
-			//Queues path
+
 			while (aux != nDestiny)
 			{
 				Debug.DrawLine(aux.position, GetNextNode(aux,destiny).position, Color.red,2);
@@ -45,14 +44,18 @@
 		{
 			path.Enqueue(n);
 			if (!move)
+			{
 				move = true;
+			}
 			return n;
 		}
 
 		private Node DequeueOnPath()
 		{		
 			if (path.Count == 1 && move)
+			{
 				move = false;
+			}
 			return path.Dequeue();
 		}
 
@@ -64,7 +67,9 @@
 			foreach (Neighbor nei in nCurrent.connectedList)
 			{
 				if (!nei.node.active)
+				{
 					continue;
+				}
 				queueNodes.Enqueue(nei.node,GetCustoNeighbor(nei));
 				
 			}
@@ -126,12 +131,15 @@
 		/// <param name="nDestiny">Destiny of node</param>
 		private void Move(Node nDestiny)
 		{
-            Vector3 Direction = (nDestiny.position - transform.position).normalized;
+            Vector3 direction = (nDestiny.position - transform.position).normalized;
 			if (!HasReachedNode(nDestiny))
-                //transform.position += (nDestiny.position - transform.position) * agentSpeed * Time.deltaTime;
-                transform.position += Direction * agentSpeed * Time.deltaTime;
+            {
+				transform.position += direction * agentSpeed * Time.deltaTime;
+			}
             else
+			{
 				DequeueOnPath();
+			}
 		}
 
 		/// <summary>
@@ -140,8 +148,9 @@
 		/// <param name="n">Node</param>
 		private bool HasReachedNode(Node n)
 		{
-			if (Vector3.Distance(n.position, transform.position) < minDistToNode)
+			if (Vector3.Distance(n.position, transform.position) < minDistToNode) {
 				return true;
+			}
 			return false;			
 		}
 	}

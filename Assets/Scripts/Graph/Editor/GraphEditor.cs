@@ -1,17 +1,19 @@
 ﻿namespace Graph.Editor
 {
     using System.Collections.Generic;
+    using System.IO;
+    using System.Xml.Serialization;
 
     using UnityEngine;
     using UnityEditor;
 
-    public class Connected
+    public struct Connected
     {
         public int index;
         public float value;
     }
 
-    public class Nodes
+    public struct Nodes
     {
         public int index;
         public bool status;
@@ -22,6 +24,8 @@
     [CanEditMultipleObjects]
     public class GraphEditor : EditorWindow
     {
+        private string nameGraph;
+        private string error;
 
         private int size = 15;
 
@@ -52,21 +56,22 @@
 
         private void OnGUI()
         {
-            GUILayout.Label("Max Slope: ");
-            maxSlope = EditorGUILayout.FloatField(maxSlope);
-            GUILayout.Label("Max Bound: ");
-            maxBound = EditorGUILayout.FloatField(maxBound);
-            granularity = EditorGUILayout.FloatField(granularity);
-            GUILayout.Label("Size: ");
-            size = EditorGUILayout.IntField(size);
-            GUILayout.Label("Initial Vertex (Seed): ");
-            initialVertex = (GameObject)EditorGUILayout.ObjectField(initialVertex, typeof(GameObject), true);
-            GUILayout.Label("Vertex Prefab: ");
-            node = (GameObject)EditorGUILayout.ObjectField(node, typeof(GameObject), true);
-            GUILayout.Label("Edge Prefab: ");
-            edge = (GameObject)EditorGUILayout.ObjectField(edge, typeof(GameObject), true);
+            var centralizedWords = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
+
+            GUILayout.Label("GRAPH SETTINGS", centralizedWords);
             
             EditorGUILayout.Separator();
+            maxSlope = EditorGUILayout.FloatField("Max Slope:", maxSlope);
+            maxBound = EditorGUILayout.FloatField("Max Bound:", maxBound);
+            granularity = EditorGUILayout.FloatField("Granularity:", granularity);
+            size = EditorGUILayout.IntField("Size:", size);
+            initialVertex = (GameObject)EditorGUILayout.ObjectField("Initial Vertex (Seed):", initialVertex, typeof(GameObject), true);
+            node = (GameObject)EditorGUILayout.ObjectField("Vertex (Prefab):", node, typeof(GameObject), true);
+            edge = (GameObject)EditorGUILayout.ObjectField("Edge (Prefab):", edge, typeof(GameObject), true);
+            nameGraph = EditorGUILayout.TextField("Name of the Graph: ", nameGraph);
+
+            EditorGUILayout.Separator();
+            GUILayout.Label("GENERATE GRAPH", centralizedWords);
             EditorGUI.BeginDisabledGroup(!initialVertex || !node || !edge);
             if (GUILayout.Button("Generate Graph"))
             {
@@ -74,27 +79,57 @@
                 graph = new GameObject("Graph");
                 CreateGraph(size);
                 DrawEdges(nodes);
+                error = null;
             }
-            EditorGUI.EndDisabledGroup();        
+            EditorGUI.EndDisabledGroup();
 
+            EditorGUI.BeginDisabledGroup(!GameObject.Find("Graph"));
+            if (GUILayout.Button("Save Graph"))
+            {
+                if (nameGraph == "")
+                {
+                    error = "GIVE YOUR GRAPH A NAME TO SAVE";
+                }
+                else
+                {
+                    SaveGraphXML(nameGraph);
+                    error = null;
+                }
+            }
             if (GUILayout.Button("Delete Graph"))
             {
                 DeleteGraph();
+                error = null;
             }
+            EditorGUI.EndDisabledGroup();
 
-            if (GUILayout.Button("SaveGraph"))
+            EditorGUI.BeginDisabledGroup(GameObject.Find("Graph"));
+            if (GUILayout.Button("Load Graph") && !GameObject.Find("Graph"))
             {
-                SaveXML();
+                if (nameGraph == "")
+                {
+                    error = "ENTER THE NAME OF THE GRAPH TO LOAD";
+                }
+                else if (File.Exists("Assets/GraphsXML/" + nameGraph + ".xml"))
+                {
+                    LoadGraphXML(nameGraph);
+                    error = null;
+                }
+                else
+                {
+                    error = "THERE IS NO GRAPH AVAILABLE FOR LOADING";
+                }
             }
+            EditorGUI.EndDisabledGroup();
 
-            if (GUILayout.Button("LoadGraph"))
-            {
-                LoadXML();
-            }
+            GUILayout.Space(15);
+            GUILayout.Label(error, centralizedWords);
+
+            /* Play Mode */
             if (Application.isPlaying && !GameObject.Find("Graph"))
             {
-                LoadXML();
-                GraphManager.singleton.SetNodes(nodes);
+                LoadGraphXML(nameGraph);
+                error = null;
             }
         }
 
@@ -124,41 +159,30 @@
                         newNode.name = "v_" + (i * size + j);
                         newNode.GetComponent<Node>().index = i * size + j;
                         newNode.GetComponent<Node>().position = hit.point;
-
                         newNode.transform.SetParent(nodesLocation.transform);
-                        
-                        // If it collides with the layer No Walk
                         if (hit.collider.gameObject.layer == 23)
                         {
                             newNode.GetComponent<Node>().active = false;
                         }
-
-                        // Turn off very steep vertices
                         if (!IsSlopeValid(hit))
                         {
                             newNode.GetComponent<Node>().active = false;
                         }
-                        
-                        // Turn off near vertices of walls
                         if (IsNearWall(newNode, hit))
                         {
                             newNode.GetComponent<Node>().active = false;
                         }
-
                         nodes[i * size + j] = newNode.GetComponent<Node>();
-                        
                     }
                 }
             }
-
         }
-    
 
         public void DeleteGraph()
         {
             if (graph != null)
             {
-                DestroyImmediate(graph.gameObject);
+                DestroyImmediate(GameObject.Find("Graph"));
             }
             nodes = new Node[0];
             edges = new List<Edge>();
@@ -250,7 +274,7 @@
         }
 
         #region Save/Load
-        public void SaveXML()
+        public void SaveGraphXML(string name)
         {
             Nodes[] savedData = new Nodes[nodes.Length];
             for (int i = 0; i < savedData.Length; i++)
@@ -271,59 +295,64 @@
 
                 savedData[i] = aux;
             }
-
-            System.Xml.Serialization.XmlSerializer writer = new System.Xml.Serialization.XmlSerializer(typeof(Nodes[]));
-            System.IO.FileStream file = System.IO.File.Create("Graph");
-
+            string path = "Assets/GraphsXML/" + name + ".xml";
+            XmlSerializer writer = new XmlSerializer(typeof(Nodes[]));
+            FileStream file = File.Create(path);
             writer.Serialize(file, savedData);
 
             file.Flush();
             file.Close();
             Debug.Log("Saved");
+            AssetDatabase.SaveAssets();
         }
 
         /// <summary>
         /// Method for loading an object from an XML file
         /// </summary>
-        public void LoadXML()
+        public void LoadGraphXML(string name)
         {
             Nodes[] loadedData;
-            System.Xml.Serialization.XmlSerializer reader = new System.Xml.Serialization.XmlSerializer(typeof(Nodes[]));
-            System.IO.StreamReader file = new System.IO.StreamReader("Graph");
-            loadedData = (Nodes[])reader.Deserialize(file);
-            file.Close();
-
-            nodes = new Node[loadedData.Length];
-
-            graph = new GameObject("Graph");
-            nodesLocation = new GameObject("Nodes");
-            nodesLocation.transform.SetParent(graph.transform);
-
-            for (int i = 0; i < nodes.Length; i++)
+            string path = "Assets/GraphsXML/" + name + ".xml";
+            XmlSerializer reader = new XmlSerializer(typeof(Nodes[]));
+            StreamReader file = new StreamReader(path);
+            try
             {
-                GameObject newNode = Instantiate(node, loadedData[i].position , Quaternion.identity);
-                newNode.GetComponent<Node>().index = loadedData[i].index;
-                newNode.GetComponent<Node>().position = loadedData[i].position;
-                newNode.GetComponent<Node>().active = loadedData[i].status;
-                newNode.name = "v_" + i.ToString();
-                newNode.transform.SetParent(nodesLocation.transform);
-                nodes[i] = newNode.GetComponent<Node>();
-            }
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                for (int k = 0; k < loadedData[i].connected.Length; k++)
+                loadedData = (Nodes[])reader.Deserialize(file);
+                file.Close();
+                nodes = new Node[loadedData.Length];
+                graph = new GameObject("Graph");
+                nodesLocation = new GameObject("Nodes");
+                nodesLocation.transform.SetParent(graph.transform);
+
+                for (int i = 0; i < nodes.Length; i++)
                 {
-                    Neighbor n = new Neighbor();
-                    n.node = nodes[loadedData[i].connected[k].index].GetComponent<Node>();
-                    n.weight = loadedData[i].connected[k].value;
-                    nodes[i].GetComponent<Node>().connectedList.Add(n);
+                    GameObject newNode = Instantiate(node, loadedData[i].position , Quaternion.identity);
+                    newNode.GetComponent<Node>().index = loadedData[i].index;
+                    newNode.GetComponent<Node>().position = loadedData[i].position;
+                    newNode.GetComponent<Node>().active = loadedData[i].status;
+                    newNode.name = "v_" + i.ToString();
+                    newNode.transform.SetParent(nodesLocation.transform);
+                    nodes[i] = newNode.GetComponent<Node>();
+                }
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    for (int k = 0; k < loadedData[i].connected.Length; k++)
+                    {
+                        Neighbor n = new Neighbor();
+                        n.node = nodes[loadedData[i].connected[k].index].GetComponent<Node>();
+                        n.weight = loadedData[i].connected[k].value;
+                        nodes[i].GetComponent<Node>().connectedList.Add(n);
+                    }
+                }
+                DrawEdges(nodes);
+                if (Application.isPlaying) {
+                    GraphManager.singleton.SetNodes(nodes);
                 }
             }
-
-            DrawEdges(nodes);
-
-            GraphManager.singleton.SetNodes(nodes);
-
+            catch (UnityException)
+            {
+                Debug.LogError("Save file corrupted!");
+            }
             Debug.Log("Loaded");
         }
         #endregion

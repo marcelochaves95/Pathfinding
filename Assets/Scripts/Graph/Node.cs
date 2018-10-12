@@ -29,7 +29,6 @@
             }
         }
 
-
         public Vector3 position;
 
         public List<Neighbor> connectedList = new List<Neighbor>();

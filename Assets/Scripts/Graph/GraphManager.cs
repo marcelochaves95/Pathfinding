@@ -22,7 +22,14 @@
 			rta = this.GetComponent<RTA>();
 		}
 
-		public void SetNodes(Node[] newNodes)
+        private void Start()
+        {
+            
+        }
+
+
+
+        public void SetNodes(Node[] newNodes)
 		{
 			n = newNodes;
 			print("Initialized nodes");
@@ -53,5 +60,6 @@
 			
 			return nearNode;
 		}
+
 	}
 }

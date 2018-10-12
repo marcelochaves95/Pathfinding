@@ -25,8 +25,8 @@
 
         private int size = 15;
 
-        [Range(0, 90)] public float maxSlope = 30;
-        [Range(0, 10)] public float maxBound = 5;
+        private float maxSlope = 30;
+        private float maxBound = 5;
         private float granularity = 10;
 
         private GameObject initialVertex;
@@ -52,7 +52,10 @@
 
         private void OnGUI()
         {
-            GUILayout.Label("Granularity: ");
+            GUILayout.Label("Max Slope: ");
+            maxSlope = EditorGUILayout.FloatField(maxSlope);
+            GUILayout.Label("Max Bound: ");
+            maxBound = EditorGUILayout.FloatField(maxBound);
             granularity = EditorGUILayout.FloatField(granularity);
             GUILayout.Label("Size: ");
             size = EditorGUILayout.IntField(size);
@@ -88,13 +91,18 @@
             {
                 LoadXML();
             }
+            if (Application.isPlaying && !GameObject.Find("Graph"))
+            {
+                LoadXML();
+                GraphManager.singleton.SetNodes(nodes);
+            }
         }
 
         private void OnInspectorUpdate()
         {
             if (edges.Count > 0)
             {
-                UpdateEdges();
+                if (edges[0] != null) UpdateEdges();
             }
         }
         #endregion
@@ -142,8 +150,9 @@
                     }
                 }
             }
-            GraphManager.singleton.SetNodes(nodes);
+
         }
+    
 
         public void DeleteGraph()
         {

@@ -126,9 +126,11 @@
 		/// <param name="nDestiny">Destiny of node</param>
 		private void Move(Node nDestiny)
 		{
+            Vector3 Direction = (nDestiny.position - transform.position).normalized;
 			if (!HasReachedNode(nDestiny))
-				transform.position += (nDestiny.position - transform.position) * agentSpeed * Time.deltaTime;
-			else
+                //transform.position += (nDestiny.position - transform.position) * agentSpeed * Time.deltaTime;
+                transform.position += Direction * agentSpeed * Time.deltaTime;
+            else
 				DequeueOnPath();
 		}
 

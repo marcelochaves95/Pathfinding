@@ -1,61 +1,62 @@
-﻿namespace Graph
-{
-    using UnityEngine;
+﻿using UnityEngine;
 
+namespace Graph
+{
     public class Edge : MonoBehaviour
     {
         private float _value;
-        public float value = 1;
 
-        private bool vertexAActive;
-        private bool vertexBActive;
-        
-        private Vector3 offset;
-        private Vector3 scale;
-        private Vector3 position;
-
-        private Node vertexA;
-        private Node vertexB;
-
-        public void SetEdge(Node a, Node b)
+        public float Value
         {
-            vertexA = a;
-            vertexB = b;
-            vertexAActive = a.active;
-            vertexBActive = b.active;
-            _value = value = vertexA.AddNode(b, value);
-            vertexB.AddNode(a, value);
+            get { return _value; }
+            set { _value = 1; }
+        }
+
+        public bool VertexAActive { get; set; }
+        public bool VertexBActive { get; set; }
+
+        public Vector3 Offset { get; set; }
+        public Vector3 Scale { get; set; }
+        public Vector3 Position { get; set; }
+
+        public Node VertexA { get; set; }
+        public Node VertexB { get; set; }
+
+        public void SetEdge(Node node1, Node node2)
+        {
+            VertexA = node1;
+            VertexB = node2;
+            VertexAActive = node1.active;
+            VertexBActive = node2.active;
+            _value = Value = VertexA.AddNode(node2, Value);
+            VertexB.AddNode(node1, Value);
             UpdateEdge();
         }
 
         public void UpdateEdge()
         {
-            offset = vertexB.transform.position - vertexA.transform.position;
-            scale = new Vector3(0.05f, offset.magnitude, 0.05f);
-            position = vertexA.transform.position + (offset / 2.0f);
+            Offset = VertexB.transform.position - VertexA.transform.position;
+            Scale = new Vector3(0.05f, Offset.magnitude, 0.05f);
+            Position = VertexA.transform.position + (Offset / 2f);
 
-            this.transform.up = offset;
-            this.transform.position = position;
-            this.gameObject.name = vertexA.name + " - " + vertexB.name + " Value: " + value.ToString();
+            transform.up = Offset;
+            transform.position = Position;
+            gameObject.name = VertexA.name + " - " + VertexB.name + " Value: " + Value.ToString();
             
-            this.transform.localScale = scale;
+            transform.localScale = Scale;
 
-            vertexA.UpdateStats();
-            vertexB.UpdateStats();
+            VertexA.UpdateStats();
+            VertexB.UpdateStats();
 
-            if (!vertexA.active || !vertexB.active)
-            {
-                this.transform.localScale = Vector3.zero;
-            }
+            if (!VertexA.active || !VertexB.active)
+                transform.localScale = Vector3.zero;
             else
+                transform.localScale = Scale;
+            if (_value != Value)
             {
-                this.transform.localScale = scale;
-            }
-            if (_value != value)
-            {
-                vertexA.UpdateWeight(vertexB, value);
-                vertexB.UpdateWeight(vertexA, value);
-                _value = value;
+                VertexA.UpdateWeight(VertexB, Value);
+                VertexB.UpdateWeight(VertexA, Value);
+                _value = Value;
             }   
         }
     }

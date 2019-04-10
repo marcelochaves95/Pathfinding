@@ -1,15 +1,15 @@
-﻿namespace ArtificialIntelligence
+﻿using System.Collections.Generic;
+
+using UnityEngine;
+
+using Graph;
+
+namespace ArtificialIntelligence
 {
-    using System.Collections.Generic;
-
-    using UnityEngine;
-
-	using Graph;
-
     public class Agent : MonoBehaviour
 	{
-		[SerializeField] float agentSpeed = .5f;
-		[SerializeField] float minDistToNode = 0.25f;
+		[SerializeField] private float agentSpeed = 0.5f;
+		[SerializeField] private float minDistToNode = 0.25f;
 		
 		private bool move = false;
 		
@@ -19,23 +19,21 @@
 		{
 			ClickToMove();
 			if (move)
-			{
-				Move(path.Peek());
-			}
+                Move(path.Peek());
 		}
 
 		private void RTA(Vector3 destiny)
 		{
 			GraphManager.singleton.rta.CalculateHeuristics(destiny);
-			Node nCurrent = GraphManager.singleton.GetNode(transform.position);
-			Node nDestiny = GraphManager.singleton.GetNode(destiny);
-			EnqueueOnPath(nCurrent);
-			Node aux = nCurrent;
+			Node nodeCurrent = GraphManager.singleton.GetNode(transform.position);
+			Node nodeDestiny = GraphManager.singleton.GetNode(destiny);
+			EnqueueOnPath(nodeCurrent);
+			Node aux = nodeCurrent;
 
-			while (aux != nDestiny)
+			while (aux != nodeDestiny)
 			{
-				Debug.DrawLine(aux.position, GetNextNode(aux,destiny).position, Color.red,2);
-				aux = EnqueueOnPath(GetNextNode(aux,destiny));
+				Debug.DrawLine(aux.position, GetNextNode(aux).position, Color.red, 2);
+				aux = EnqueueOnPath(GetNextNode(aux));
 				
 			}
 		}
@@ -53,55 +51,55 @@
 		private Node DequeueOnPath()
 		{		
 			if (path.Count == 1 && move)
-			{
 				move = false;
-			}
+
 			return path.Dequeue();
 		}
 
-		private Node GetNextNode(Node nCurrent, Vector3 d)
+		private Node GetNextNode(Node nodeCurrent)
 		{
-			Node nNext = new Node();
+			Node nodeNext = new Node();
 			PriorityQueue<Node> queueNodes = new PriorityQueue<Node>();
 			float newCost;
-			foreach (Neighbor nei in nCurrent.connectedList)
+
+            foreach (Neighbor neighbor in nodeCurrent.connectedList)
 			{
-				if (!nei.node.active)
-				{
-					continue;
-				}
-				queueNodes.Enqueue(nei.node,GetCustoNeighbor(nei));
-				
+				if (!neighbor.node.active)
+                    continue;
+
+				queueNodes.Enqueue(neighbor.node,GetCustoNeighbor(neighbor));
 			}
-			nNext = queueNodes.Dequeue();
-			newCost = GetCustoNeighbor(nCurrent,nNext);
-			GraphManager.singleton.rta.UpdateHeuristic(newCost,nCurrent);
-			return nNext;
+
+			nodeNext = queueNodes.Dequeue();
+			newCost = GetCustoNeighbor(nodeCurrent, nodeNext);
+			GraphManager.singleton.rta.UpdateHeuristic(newCost,nodeCurrent);
+
+			return nodeNext;
 		}
 
 		/// <summary>
 		/// f(n) = h(n) + g(n); new Heuristic (Dist to destiny) + actual node cost (edge weight)
 		/// </summary>
-		/// <param name="nei"></param>
+		/// <param name="neighbor"></param>
 		/// <returns>Final cost</returns>
-		private float GetCustoNeighbor(Neighbor nei)
+		private float GetCustoNeighbor(Neighbor neighbor)
 		{
-			float finalCost = GraphManager.singleton.rta.heuristics[nei.node.index] + nei.weight;
-			return finalCost;
-		}
+			return GraphManager.singleton.rta.heuristics[neighbor.node.index] + neighbor.weight;
+        }
 
-		private float GetCustoNeighbor(Node o, Node d)
+		private float GetCustoNeighbor(Node origin, Node destiny)
 		{
 			float finalCost = 9999;
-			foreach (Neighbor n in o.connectedList)
+
+            foreach (Neighbor neighbor in origin.connectedList)
 			{
-				if (n.node == d)
-					finalCost = GetCustoNeighbor(n);
+				if (neighbor.node == destiny)
+					finalCost = GetCustoNeighbor(neighbor);
 			}
+
 			if (finalCost == 9999)
-			{
-				print("ERROR!");
-			}
+                print("ERROR!");
+
 			return finalCost;
 		}
 
@@ -117,41 +115,34 @@
 					path.Clear();
 					move = false;
 				}
+
 				RaycastHit hit;
 				if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
-				{
-					RTA(hit.point);
-				}
+                    RTA(hit.point);
 			}
 		}
 
 		/// <summary>
 		/// Moves agent to node-destiny
 		/// </summary>
-		/// <param name="nDestiny">Destiny of node</param>
-		private void Move(Node nDestiny)
+		/// <param name="nodeDestiny">Destiny of node</param>
+		private void Move(Node nodeDestiny)
 		{
-            Vector3 direction = (nDestiny.position - transform.position).normalized;
-			if (!HasReachedNode(nDestiny))
-            {
-				transform.position += direction * agentSpeed * Time.deltaTime;
-			}
+            Vector3 direction = (nodeDestiny.position - transform.position).normalized;
+
+			if (!HasReachedNode(nodeDestiny))
+                transform.position += direction * agentSpeed * Time.deltaTime;
             else
-			{
-				DequeueOnPath();
-			}
+                DequeueOnPath();
 		}
 
 		/// <summary>
 		/// Checks if agent has already reached goal node
 		/// </summary>
-		/// <param name="n">Node</param>
-		private bool HasReachedNode(Node n)
+		/// <param name="node">Node</param>
+		private bool HasReachedNode(Node node)
 		{
-			if (Vector3.Distance(n.position, transform.position) < minDistToNode) {
-				return true;
-			}
-			return false;			
+            return Vector3.Distance(node.position, transform.position) < minDistToNode;
 		}
 	}
 }

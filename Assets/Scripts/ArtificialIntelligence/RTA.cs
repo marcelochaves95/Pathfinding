@@ -16,7 +16,7 @@ namespace ArtificialIntelligence
         /// <param name="heuristic">Heuristics</param>
         public void InitHeuristics(float heuristic)
 		{
-			for (int i = 0; i < GraphManager.singleton.n.Length; i++)
+			for (int i = 0; i < GraphManager.singleton.node.Length; i++)
 			{
 				heuristics.Add(heuristic);
 			}
@@ -24,9 +24,9 @@ namespace ArtificialIntelligence
 
 		public void CalculateHeuristics(Vector3 destiny)
 		{
-			for (int i = 0; i < GraphManager.singleton.n.Length; i++)
+			for (int i = 0; i < GraphManager.singleton.node.Length; i++)
 			{
-				heuristics[i] = Vector3.Distance(GraphManager.singleton.n[i].position, destiny);
+				heuristics[i] = Vector3.Distance(GraphManager.singleton.node[i].position, destiny);
 			}
 
 			print("Calculated heuristics");

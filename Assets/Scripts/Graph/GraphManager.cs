@@ -1,30 +1,28 @@
-﻿namespace Graph
+﻿using UnityEngine;
+
+using ArtificialIntelligence;
+
+namespace Graph
 {
-    using UnityEngine;
-
-    using ArtificialIntelligence;
-
     public class GraphManager : MonoBehaviour
 	{
 		public static GraphManager singleton;
 		
 		public RTA rta;
 
-		public Node[] n;
+		public Node[] node;
 
 		private void Awake()
 		{
 			if (singleton == null)
-			{
 				singleton = this;
-			}
 
-			rta = this.GetComponent<RTA>();
+			rta = GetComponent<RTA>();
 		}
 
         public void SetNodes(Node[] newNodes)
 		{
-			n = newNodes;
+			node = newNodes;
 			print("Initialized nodes");
 			rta.InitHeuristics(9999);
 		}
@@ -32,24 +30,25 @@
 		/// <summary>
 		/// Find the nearest Node of a position
 		/// </summary>
-		/// <param name="pos">Postion</param>
+		/// <param name="position">Postion</param>
 		/// <returns>Near node</returns>
-		public Node GetNode(Vector3 pos)
+		public Node GetNode(Vector3 position)
 		{
 			Node nearNode = new Node();
-			float lowerDist = 99999;
+			float lowerDistance = 99999;
 
-			for (int i = 0; i < n.Length - 1; i++)
+			for (int i = 0; i < node.Length - 1; i++)
 			{
-				if (Vector3.Distance(pos, n[i].position) < lowerDist)
+				if (Vector3.Distance(position, node[i].position) < lowerDistance)
 				{
-					if (n[i].Active)
+					if (node[i].Active)
 					{
-						lowerDist = Vector3.Distance(pos, n[i].position);
-						nearNode = n[i];
+						lowerDistance = Vector3.Distance(position, node[i].position);
+						nearNode = node[i];
 					}
 				}
 			}
+
 			return nearNode;
 		}
 	}

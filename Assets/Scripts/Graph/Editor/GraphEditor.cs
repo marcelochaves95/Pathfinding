@@ -1,12 +1,12 @@
-﻿namespace Graph.Editor
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Xml.Serialization;
+
+using UnityEngine;
+using UnityEditor;
+
+namespace Graph.Editor
 {
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Xml.Serialization;
-
-    using UnityEngine;
-    using UnityEditor;
-
     public struct Connected
     {
         public int index;
@@ -29,9 +29,9 @@
 
         private int size = 15;
 
-        private float maxSlope = 30;
-        private float maxBound = 5;
-        private float granularity = 10;
+        private float maxSlope = 30f;
+        private float maxBound = 5f;
+        private float granularity = 10f;
 
         private GameObject initialVertex;
         private GameObject nodesLocation;
@@ -87,9 +87,7 @@
             if (GUILayout.Button("Save Graph"))
             {
                 if (nameGraph == "")
-                {
                     error = "GIVE YOUR GRAPH A NAME TO SAVE";
-                }
                 else
                 {
                     SaveGraphXML(nameGraph);
@@ -107,25 +105,21 @@
             if (GUILayout.Button("Load Graph") && !GameObject.Find("Graph"))
             {
                 if (nameGraph == "")
-                {
                     error = "ENTER THE NAME OF THE GRAPH TO LOAD";
-                }
                 else if (File.Exists("Assets/GraphsXML/" + nameGraph + ".xml"))
                 {
                     LoadGraphXML(nameGraph);
                     error = null;
                 }
                 else
-                {
                     error = "THERE IS NO GRAPH AVAILABLE FOR LOADING";
-                }
             }
             EditorGUI.EndDisabledGroup();
 
             GUILayout.Space(15);
             GUILayout.Label(error, centralizedWords);
 
-            /* Play Mode */
+            // Play Mode
             if (Application.isPlaying && !GameObject.Find("Graph"))
             {
                 LoadGraphXML(nameGraph);
@@ -136,12 +130,8 @@
         private void OnInspectorUpdate()
         {
             if (edges.Count > 0)
-            {
                 if (edges[0] != null)
-                {
                     UpdateEdges();
-                }
-            }
         }
         #endregion
 
@@ -156,6 +146,7 @@
                 {
                     RaycastHit hit;
                     Vector3 posNode = initialVertex.transform.position + new Vector3(i * granularity, 0, j * granularity);
+
                     if (Physics.Raycast(posNode, Vector3.down, out hit, Mathf.Infinity))
                     {
                         GameObject newNode = Instantiate(node, hit.point, Quaternion.identity);
@@ -163,18 +154,16 @@
                         newNode.GetComponent<Node>().index = i * size + j;
                         newNode.GetComponent<Node>().position = hit.point;
                         newNode.transform.SetParent(nodesLocation.transform);
+
                         if (hit.collider.gameObject.layer == 23)
-                        {
                             newNode.GetComponent<Node>().Active = false;
-                        }
+
                         if (!IsSlopeValid(hit))
-                        {
                             newNode.GetComponent<Node>().Active = false;
-                        }
+
                         if (IsNearWall(newNode, hit))
-                        {
                             newNode.GetComponent<Node>().Active = false;
-                        }
+
                         nodes[i * size + j] = newNode.GetComponent<Node>();
                     }
                 }
@@ -184,9 +173,8 @@
         public void DeleteGraph()
         {
             if (graph != null)
-            {
                 DestroyImmediate(GameObject.Find("Graph"));
-            }
+
             nodes = new Node[0];
             edges = new List<Edge>();
         }
@@ -195,65 +183,67 @@
         /// Checks if the slope is valid
         /// </summary>
         /// <returns></returns>
-        private bool IsSlopeValid(RaycastHit h)
+        private bool IsSlopeValid(RaycastHit raycast)
         {
-            float slope = Vector3.Angle(h.collider.gameObject.transform.TransformDirection(Vector3.up), h.normal);
-            if (slope > 90)
-            {
-                slope = 180 - slope;
-            }
+            float slope = Vector3.Angle(raycast.collider.gameObject.transform.TransformDirection(Vector3.up), raycast.normal);
+
+            if (slope > 90f)
+                slope = 180f - slope;
+
             if (slope > maxSlope)
-            {
                 return false;
-            }
+
             return true;
         }
 
         /// <summary>
         /// Checks if vertex is near a blocking wall
         /// </summary>
-        /// <param name="n"></param>
-        /// <param name="h"></param>
+        /// <param name="node"></param>
+        /// <param name="raycast"></param>
         /// <returns></returns>
-        private bool IsNearWall(GameObject n, RaycastHit h)
+        private bool IsNearWall(GameObject node, RaycastHit raycast)
         {
-            if (Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.forward, out h, maxBound) ||
-                Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.back, out h, maxBound) ||
-                Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.right, out h, maxBound) ||
-                Physics.Raycast(n.transform.position + new Vector3(0, -maxBound, 0), Vector3.left, out h, maxBound))
-                if (h.transform.gameObject.layer == 23)
-                {
+            var forward = Physics.Raycast(node.transform.position + new Vector3(0, -maxBound, 0), Vector3.forward, out raycast, maxBound);
+            var back = Physics.Raycast(node.transform.position + new Vector3(0, -maxBound, 0), Vector3.back, out raycast, maxBound);
+            var left = Physics.Raycast(node.transform.position + new Vector3(0, -maxBound, 0), Vector3.right, out raycast, maxBound);
+            var right = Physics.Raycast(node.transform.position + new Vector3(0, -maxBound, 0), Vector3.left, out raycast, maxBound);
+
+            if (forward || back || left || right)
+                if (raycast.transform.gameObject.layer == 23)
                     return true;
-                }
+
             return false;
         }
 
+        private int ArrayIndex(int j, int i)
+        {
+            return (j * size) + i;
+        }
 
-        private void DrawEdges(Node[] m)
+        private void DrawEdges(Node[] matrix)
         {
             edgesLocation = new GameObject("Edges");
             edgesLocation.transform.SetParent(graph.transform);
-            if (m == null)
-            {
+            if (matrix == null)
                 return;
-            }
+
             for (int i = 0; i < size; i++)
             {
                 for (int j = 0; j < size; j++)
                 {
-                    if (i + 1 < size)
-                    {
-                        if (m[(j * size) + i] != null && m[(j * size) + (i + 1)] != null)
-                            CreateEdge(m[(j * size) + i], m[(j * size) + (i + 1)]);
-                    }
-                    if (j + 1 < size)
-                            if (m[(j * size) + i] != null && m[((j + 1) * size) + (i)] != null)
-                            CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i)]);
+                    if (i + 1 < size && matrix[(j * size) + i] != null && matrix[(j * size) + (i + 1)] != null)
+                        CreateEdge(matrix[(j * size) + i], matrix[(j * size) + (i + 1)]);
+
+                    if (j + 1 < size && matrix[(j * size) + i] != null && matrix[((j + 1) * size) + (i)] != null)
+                        CreateEdge(matrix[(j * size) + i], matrix[((j + 1) * size) + (i)]);
+
                     if (i + 1 < size && j + 1 < size) {
-                        if (m[(j * size) + i] != null && m[((j + 1) * size) + (i + 1)] != null)
-                            CreateEdge(m[(j * size) + i], m[((j + 1) * size) + (i + 1)]);
-                        if (m[((j + 1) * size) + i] != null && m[((j) * size) + (i + 1)] != null)
-                            CreateEdge(m[((j + 1) * size) + i], m[((j) * size) + (i + 1)]);
+                        if (matrix[(j * size) + i] != null && matrix[((j + 1) * size) + (i + 1)] != null)
+                            CreateEdge(matrix[(j * size) + i], matrix[((j + 1) * size) + (i + 1)]);
+
+                        if (matrix[((j + 1) * size) + i] != null && matrix[((j) * size) + (i + 1)] != null)
+                            CreateEdge(matrix[((j + 1) * size) + i], matrix[((j) * size) + (i + 1)]);
                     }
                 }
             }
@@ -261,17 +251,23 @@
 
         private void CreateEdge(Node vertexA, Node vertexB)
         {
-            GameObject e = Instantiate(edge, Vector3.zero, Quaternion.identity, edgesLocation.transform);
-            Edge ed = e.GetComponent<Edge>();
-            ed.SetEdge(vertexA, vertexB);
-            edges.Add(ed);
+            Vector3 rayDirection = vertexB.position - vertexA.position;
+            RaycastHit hit;
+
+            if (Physics.Raycast(vertexA.position, rayDirection.normalized, out hit, rayDirection.magnitude))
+                return;
+
+            GameObject edgeGO = Instantiate(this.edge, Vector3.zero, Quaternion.identity, edgesLocation.transform);
+            Edge edge = edgeGO.GetComponent<Edge>();
+            edge.SetEdge(vertexA, vertexB);
+            edges.Add(edge);
         }
 
         private void UpdateEdges()
         {
-            foreach (Edge e in edges)
+            foreach (Edge item in edges)
             {
-                e.UpdateEdge();
+                item.UpdateEdge();
             }
         }
 
@@ -279,25 +275,32 @@
         public void SaveGraphXML(string name)
         {
             Nodes[] savedData = new Nodes[nodes.Length];
+
             for (int i = 0; i < savedData.Length; i++)
             {
-                Nodes aux = new Nodes();
-                aux.index = nodes[i].index;
-                aux.status = nodes[i].Active;
-                aux.position = nodes[i].transform.position;
+                Nodes aux = new Nodes
+                {
+                    index = nodes[i].index,
+                    status = nodes[i].Active,
+                    position = nodes[i].transform.position,
+                    connected = new Connected[nodes[i].GetComponent<Node>().connectedList.Count]
+                };
 
-                aux.connected = new Connected[nodes[i].GetComponent<Node>().connectedList.Count];
                 for (int k = 0; k < aux.connected.Length; k++)
                 {
-                    Connected auxCon = new Connected();
-                    auxCon.index = nodes[i].connectedList[k].node.index;
-                    auxCon.value = nodes[i].connectedList[k].weight;
-                    aux.connected[k] = auxCon;
+                    Connected auxConnected = new Connected
+                    {
+                        index = nodes[i].connectedList[k].node.index,
+                        value = nodes[i].connectedList[k].weight
+                    };
+
+                    aux.connected[k] = auxConnected;
                 }
 
                 savedData[i] = aux;
             }
-            string path = "Assets/GraphsXML/" + name + ".xml";
+
+            var path = "Assets/GraphsXML/" + name + ".xml";
             XmlSerializer writer = new XmlSerializer(typeof(Nodes[]));
             FileStream file = File.Create(path);
             writer.Serialize(file, savedData);
@@ -317,6 +320,7 @@
             string path = "Assets/GraphsXML/" + name + ".xml";
             XmlSerializer reader = new XmlSerializer(typeof(Nodes[]));
             StreamReader file = new StreamReader(path);
+
             try
             {
                 loadedData = (Nodes[])reader.Deserialize(file);
@@ -336,25 +340,31 @@
                     newNode.transform.SetParent(nodesLocation.transform);
                     nodes[i] = newNode.GetComponent<Node>();
                 }
+
                 for (int i = 0; i < nodes.Length; i++)
                 {
                     for (int k = 0; k < loadedData[i].connected.Length; k++)
                     {
-                        Neighbor n = new Neighbor();
-                        n.node = nodes[loadedData[i].connected[k].index].GetComponent<Node>();
-                        n.weight = loadedData[i].connected[k].value;
-                        nodes[i].GetComponent<Node>().connectedList.Add(n);
+                        Neighbor neighbor = new Neighbor
+                        {
+                            node = nodes[loadedData[i].connected[k].index].GetComponent<Node>(),
+                            weight = loadedData[i].connected[k].value
+                        };
+
+                        nodes[i].GetComponent<Node>().connectedList.Add(neighbor);
                     }
                 }
+
                 DrawEdges(nodes);
-                if (Application.isPlaying) {
+
+                if (Application.isPlaying)
                     GraphManager.singleton.SetNodes(nodes);
-                }
             }
             catch (UnityException)
             {
                 Debug.LogError("Save file corrupted!");
             }
+
             Debug.Log("Loaded");
         }
         #endregion

@@ -165,15 +165,15 @@
                         newNode.transform.SetParent(nodesLocation.transform);
                         if (hit.collider.gameObject.layer == 23)
                         {
-                            newNode.GetComponent<Node>().active = false;
+                            newNode.GetComponent<Node>().Active = false;
                         }
                         if (!IsSlopeValid(hit))
                         {
-                            newNode.GetComponent<Node>().active = false;
+                            newNode.GetComponent<Node>().Active = false;
                         }
                         if (IsNearWall(newNode, hit))
                         {
-                            newNode.GetComponent<Node>().active = false;
+                            newNode.GetComponent<Node>().Active = false;
                         }
                         nodes[i * size + j] = newNode.GetComponent<Node>();
                     }
@@ -283,7 +283,7 @@
             {
                 Nodes aux = new Nodes();
                 aux.index = nodes[i].index;
-                aux.status = nodes[i].active;
+                aux.status = nodes[i].Active;
                 aux.position = nodes[i].transform.position;
 
                 aux.connected = new Connected[nodes[i].GetComponent<Node>().connectedList.Count];
@@ -331,7 +331,7 @@
                     GameObject newNode = Instantiate(node, loadedData[i].position , Quaternion.identity);
                     newNode.GetComponent<Node>().index = loadedData[i].index;
                     newNode.GetComponent<Node>().position = loadedData[i].position;
-                    newNode.GetComponent<Node>().active = loadedData[i].status;
+                    newNode.GetComponent<Node>().Active = loadedData[i].status;
                     newNode.name = "v_" + i.ToString();
                     newNode.transform.SetParent(nodesLocation.transform);
                     nodes[i] = newNode.GetComponent<Node>();

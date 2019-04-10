@@ -1,9 +1,9 @@
-﻿namespace Graph
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-    using UnityEngine;
-    
+using UnityEngine;
+
+namespace Graph
+{
     public struct Neighbor
     {
         public Node node;
@@ -14,17 +14,13 @@
     {
         public int index;
 
-        [SerializeField]
-        private bool _active = true;
-        public bool active
+        private bool active;
+        public bool Active
         {
-            get
-            {
-                return this._active;
-            }
+            get { return active; }
             set
             {
-                this._active = value;
+                active = value;
                 UpdateStats();
             }
         }
@@ -36,38 +32,41 @@
         public Material green;
         public Material red;
 
-        public float AddNode(Node n, float d)
+        public float AddNode(Node node, float distance)
         {
             foreach (Neighbor ne in connectedList)
             {
-                if (ne.node == n)
+                if (ne.node == node)
                 {
                     return ne.weight;
                 }
             }
+
             Neighbor aux;
-            aux.node = n;
-            aux.weight = d;
+            aux.node = node;
+            aux.weight = distance;
             connectedList.Add(aux);
-            return d;
+            return distance;
         }
 
-        void FixedUpdate(){
+        private void FixedUpdate()
+        {
             UpdateStats();
         }
 
         public void UpdateStats()
         {
-            position = this.transform.position;
-            this.gameObject.GetComponent<Renderer>().material = active ? green : red;
+            position = transform.position;
+            gameObject.GetComponent<Renderer>().material = Active ? green : red;
         }
 
-        public void UpdateWeight(Node n, float value)
+        public void UpdateWeight(Node node, float value)
         {
             Neighbor aux;
+
             for (int i = 0; i < connectedList.Count; i++)
             {
-                if (connectedList[i].node == n)
+                if (connectedList[i].node == node)
                 {
                     aux = connectedList[i];
                     aux.weight = value;

@@ -43,7 +43,7 @@
 			{
 				if (Vector3.Distance(pos, n[i].position) < lowerDist)
 				{
-					if (n[i].active)
+					if (n[i].Active)
 					{
 						lowerDist = Vector3.Distance(pos, n[i].position);
 						nearNode = n[i];

@@ -64,7 +64,7 @@ namespace ArtificialIntelligence
 
             foreach (Neighbor neighbor in nodeCurrent.connectedList)
 			{
-				if (!neighbor.node.active)
+				if (!neighbor.node.Active)
                     continue;
 
 				queueNodes.Enqueue(neighbor.node,GetCustoNeighbor(neighbor));

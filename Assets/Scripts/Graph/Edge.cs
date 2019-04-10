@@ -5,7 +5,6 @@ namespace Graph
     public class Edge : MonoBehaviour
     {
         private float _value;
-
         public float Value
         {
             get { return _value; }
@@ -26,8 +25,8 @@ namespace Graph
         {
             VertexA = node1;
             VertexB = node2;
-            VertexAActive = node1.active;
-            VertexBActive = node2.active;
+            VertexAActive = node1.Active;
+            VertexBActive = node2.Active;
             _value = Value = VertexA.AddNode(node2, Value);
             VertexB.AddNode(node1, Value);
             UpdateEdge();
@@ -48,7 +47,7 @@ namespace Graph
             VertexA.UpdateStats();
             VertexB.UpdateStats();
 
-            if (!VertexA.active || !VertexB.active)
+            if (!VertexA.Active || !VertexB.Active)
                 transform.localScale = Vector3.zero;
             else
                 transform.localScale = Scale;

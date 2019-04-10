@@ -1,12 +1,12 @@
-﻿namespace ArtificialIntelligence
-{
-    using System.Collections;
-    using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
+namespace ArtificialIntelligence
+{
     public class PriorityQueue<T> : IEnumerable
     {
-        List<T> items;
-        List<float> priorities;
+        private List<T> items;
+        private List<float> priorities;
 
         public PriorityQueue()
         {
@@ -26,12 +26,14 @@
                 {
                     items.Insert(i, item);
                     priorities.Insert(i, (int)priority);
+
                     return i;
                 }
             }
 
             items.Add(item);
             priorities.Add(priority);
+
             return items.Count - 1;
         }
 
@@ -40,6 +42,7 @@
             T item = items[0];
             priorities.RemoveAt(0);
             items.RemoveAt(0);
+
             return item;
         }
 
